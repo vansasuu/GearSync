@@ -20,7 +20,7 @@ export async function addGear(formData: FormData) {
   const name = formData.get("name") as string;
   const category = formData.get("category") as string;
 
-  // Auto fetch image via Serper.dev API (Vercel-Safe, 2500 free/mo)
+  // Auto fetch image via Serper.dev API
   let imageUrl = null;
   const query = `${name} ${category} product`;
 
@@ -37,12 +37,14 @@ export async function addGear(formData: FormData) {
       const data = await res.json();
       if (data.images && data.images.length > 0) {
         imageUrl = data.images[0].imageUrl;
+      } else {
+        imageUrl = `ERROR_NO_IMAGES_RETURNED_FROM_SERPER`;
       }
     } else {
-      console.warn("Missing SERPER_API_KEY in environment variables.");
+      imageUrl = `ERROR_MISSING_SERPER_KEY_ON_VERCEL`;
     }
-  } catch (e) {
-    console.error("Serper API Fetch failed:", e);
+  } catch (e: any) {
+    imageUrl = `ERROR_FETCH_CRASHED: ${e.message}`;
   }
 
   try {

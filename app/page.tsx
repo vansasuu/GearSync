@@ -363,16 +363,22 @@ export default function Home() {
                 {/* IMAGE */}
                 <div className="relative">
                   {item.imageUrl ? (
-                    <div className="w-full h-36 bg-[#111] flex items-center justify-center overflow-hidden">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="w-full h-full object-contain p-4"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).parentElement!.style.display = "none";
-                        }}
-                      />
-                    </div>
+                    item.imageUrl.startsWith("ERROR_") ? (
+                      <div className="w-full h-36 bg-red-950 flex p-4 items-center justify-center text-[10px] text-red-500 font-bold text-center break-words">
+                        {item.imageUrl}
+                      </div>
+                    ) : (
+                      <div className="w-full h-36 bg-[#111] flex items-center justify-center overflow-hidden">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="w-full h-full object-contain p-4"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).parentElement!.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )
                   ) : (
                     <div className="w-full h-36 bg-[#0d0d0d] flex items-center justify-center">
                       <span className="text-zinc-800 text-xs font-bold uppercase tracking-widest">{item.category}</span>
