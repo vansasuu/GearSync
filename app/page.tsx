@@ -252,30 +252,42 @@ export default function Home() {
               <div className="flex flex-col gap-2">
                 {/* Steam card */}
                 {savedSteamId && (
-                  <a
-                    href={steamStats?.steam?.profileUrl || `https://steamcommunity.com/profiles/${savedSteamId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl px-4 py-3 hover:border-zinc-600 transition group"
-                  >
-                    {/* Steam logo */}
-                    <svg viewBox="0 0 48 48" className="w-5 h-5 flex-shrink-0" fill="currentColor">
-                      <path className="text-zinc-400 group-hover:text-white transition" fill="currentColor" d="M24 4C12.95 4 4 12.95 4 24c0 9.26 6.19 17.1 14.72 19.54L22 29.62A6 6 0 0 1 24 18a6 6 0 0 1 6 6 6 6 0 0 1-4.37 5.78l-3.79 9.14A20.06 20.06 0 0 0 24 44c11.05 0 20-8.95 20-20S35.05 4 24 4zm-8.5 30.5a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
-                    </svg>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Steam · CS2</div>
-                      <div className="text-sm font-bold text-white truncate">
-                        {steamStats?.steam?.steamName || "Steam Account"}
+                  <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl overflow-hidden">
+                    <a
+                      href={steamStats?.steam?.profileUrl || `https://steamcommunity.com/profiles/${savedSteamId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-[#111] transition group"
+                    >
+                      {/* Steam logo */}
+                      <svg viewBox="0 0 48 48" className="w-5 h-5 flex-shrink-0" fill="currentColor">
+                        <path className="text-zinc-400 group-hover:text-white transition" fill="currentColor" d="M24 4C12.95 4 4 12.95 4 24c0 9.26 6.19 17.1 14.72 19.54L22 29.62A6 6 0 0 1 24 18a6 6 0 0 1 6 6 6 6 0 0 1-4.37 5.78l-3.79 9.14A20.06 20.06 0 0 0 24 44c11.05 0 20-8.95 20-20S35.05 4 24 4zm-8.5 30.5a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
+                      </svg>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Steam</div>
+                        <div className="text-sm font-bold text-white truncate">
+                          {steamStats?.steam?.steamName || "Steam Account"}
+                        </div>
                       </div>
-                    </div>
-                    {steamStats?.steam?.hours != null && (
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-sm font-black text-green-500">{steamStats.steam.hours.toLocaleString()}h</div>
-                        <div className="text-[9px] text-zinc-600">CS2</div>
+                      <span className="text-zinc-700 group-hover:text-zinc-400 transition text-xs ml-1">↗</span>
+                    </a>
+                    {/* Game Hours Grid */}
+                    {steamStats?.steam?.gameHours && (
+                      <div className="grid grid-cols-2 gap-px bg-[#1a1a1a] border-t border-[#1a1a1a]">
+                        {[
+                          { key: "cs2", label: "CS2", color: "text-yellow-500" },
+                          { key: "pubg", label: "PUBG", color: "text-orange-500" },
+                          { key: "r6", label: "R6 Siege", color: "text-blue-400" },
+                          { key: "apex", label: "Apex", color: "text-red-500" },
+                        ].filter(g => steamStats.steam.gameHours[g.key] > 0).map(g => (
+                          <div key={g.key} className="bg-[#0a0a0a] px-4 py-2.5 flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{g.label}</span>
+                            <span className={`text-sm font-black ${g.color}`}>{steamStats.steam.gameHours[g.key].toLocaleString()}h</span>
+                          </div>
+                        ))}
                       </div>
                     )}
-                    <span className="text-zinc-700 group-hover:text-zinc-400 transition text-xs ml-1">↗</span>
-                  </a>
+                  </div>
                 )}
 
                 {/* Valorant card */}

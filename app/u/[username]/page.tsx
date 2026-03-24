@@ -221,14 +221,24 @@ export default async function UserProfilePage({
                         <div className="flex items-start justify-between mb-4">
                           <div className="w-10 h-10 rounded-xl bg-black/50 flex items-center justify-center border border-white/5 text-xl">🎮</div>
                           <div className="text-right">
-                            <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest">CS2</div>
-                            <div className="text-[10px] text-zinc-600">Steam</div>
+                            <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Steam</div>
                           </div>
                         </div>
-                        <div className="font-bold text-white text-lg truncate mb-1">{stats.steam.steamName}</div>
-                        <div className="flex items-baseline gap-1.5 mt-3">
-                          <span className="text-3xl font-black text-white tracking-tighter">{stats.steam.hours.toLocaleString()}</span>
-                          <span className="text-sm font-bold text-zinc-500">hours</span>
+                        <div className="font-bold text-white text-lg truncate mb-4">{stats.steam.steamName}</div>
+                        
+                        {/* Multi-game hours */}
+                        <div className="flex flex-col gap-2">
+                          {[
+                            { key: "cs2", label: "CS2", color: "text-yellow-500", bg: "bg-yellow-500/10" },
+                            { key: "pubg", label: "PUBG", color: "text-orange-500", bg: "bg-orange-500/10" },
+                            { key: "r6", label: "R6 Siege", color: "text-blue-400", bg: "bg-blue-500/10" },
+                            { key: "apex", label: "Apex", color: "text-red-500", bg: "bg-red-500/10" },
+                          ].filter(g => stats.steam.gameHours?.[g.key] > 0).map(g => (
+                            <div key={g.key} className={`flex items-center justify-between ${g.bg} rounded-lg px-3 py-2`}>
+                              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{g.label}</span>
+                              <span className={`text-sm font-black ${g.color}`}>{stats.steam.gameHours[g.key].toLocaleString()}h</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}

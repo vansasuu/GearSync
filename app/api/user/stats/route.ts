@@ -8,15 +8,28 @@ async function connectDB() {
   }
 }
 
+const GAME_IDS: Record<string, number> = {
+  cs2: 730,
+  pubg: 578080,
+  r6: 359550,
+  apex: 1172470,
+};
+
 async function getSteamStats(steamId: string) {
   try {
-    // Get CS2 hours
+    // Get all game hours
     const hoursRes = await fetch(
       `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${process.env.STEAM_API_KEY}&steamid=${steamId}&include_appinfo=true&format=json`
     );
     const hoursData = await hoursRes.json();
-    const cs2 = hoursData.response?.games?.find((g: any) => g.appid === 730);
-    const hours = cs2 ? Math.round(cs2.playtime_forever / 60) : 0;
+    const games = hoursData.response?.games || [];
+
+    // Extract hours for each game
+    const gameHours: Record<string, number> = {};
+    for (const [key, appid] of Object.entries(GAME_IDS)) {
+      const game = games.find((g: any) => g.appid === appid);
+      gameHours[key] = game ? Math.round(game.playtime_forever / 60) : 0;
+    }
 
     // Get Steam profile
     const profileRes = await fetch(
@@ -26,7 +39,8 @@ async function getSteamStats(steamId: string) {
     const profile = profileData.response?.players?.[0];
 
     return {
-      hours,
+      hours: gameHours.cs2, // keep backward compat
+      gameHours,
       steamName: profile?.personaname,
       avatar: profile?.avatarmedium,
       profileUrl: profile?.profileurl,
