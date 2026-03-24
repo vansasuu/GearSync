@@ -17,25 +17,25 @@ export default async function ProsPage() {
   return (
     <main className="min-h-screen bg-[#050505] text-white font-sans">
       {/* NAV */}
-      <nav className="w-full h-14 border-b border-[#1a1a1a] flex items-center justify-between px-8 bg-[#050505] sticky top-0 z-50">
-        <div className="flex items-center gap-6">
-          <a href="/" className="text-lg font-black tracking-tighter text-green-500">GEARSYNC</a>
-          <a href="/explore" className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest hover:text-white transition">Explore Gear</a>
+      <nav className="glass w-full h-16 border-b border-white/5 flex items-center justify-between px-6 sm:px-10 sticky top-0 z-50">
+        <div className="flex items-center gap-8">
+          <a href="/" className="text-xl font-black tracking-tighter text-green-500">GEARSYNC</a>
+          <a href="/explore" className="nav-link text-sm font-semibold text-zinc-400 hover:text-white transition">Explore Gear</a>
         </div>
-        <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest">CS2 Pro Settings</span>
+        <span className="text-sm font-bold text-zinc-400 uppercase tracking-widest">CS2 Pro Settings</span>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-8 py-12">
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 py-12">
 
         {/* HEADER */}
-        <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
+        <div className="flex items-end justify-between mb-10 flex-wrap gap-4 animate-fade-in-up">
           <div>
-            <h1 className="text-3xl font-black tracking-tighter mb-1">CS2 Pro Settings</h1>
-            <p className="text-sm text-zinc-600">{pros.length} pros tracked · Updated from prosettings.net</p>
+            <h1 className="text-4xl font-black tracking-tighter mb-2">CS2 Pro Settings</h1>
+            <p className="text-base text-zinc-500">{pros.length} pros tracked · Updated from prosettings.net</p>
           </div>
           <a
             href="/"
-            className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest border border-zinc-800 px-4 py-2 rounded-lg hover:border-zinc-600 hover:text-white transition"
+            className="text-sm font-semibold text-zinc-400 border border-zinc-700 px-5 py-2.5 rounded-xl hover:border-green-500 hover:text-white transition-all"
           >
             ← Back
           </a>
