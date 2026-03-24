@@ -44,17 +44,17 @@ export async function addGear(formData: FormData) {
     console.error("DDG Fetch failed:", e);
   }
 
-  // Fallback to Yahoo Images (Vercel-friendly)
+  // Fallback to Bing Images (Vercel-friendly)
   if (!imageUrl) {
     try {
-      const yahooRes = await fetch(`https://images.search.yahoo.com/search/images?p=${query}`, {
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36" }
+      const bingRes = await fetch(`https://www.bing.com/images/search?q=${query}`, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36" }
       });
-      const yahooHtml = await yahooRes.text();
-      const yahooMatch = yahooHtml.match(/src='(https:\/\/tse\d\.mm\.bing\.net[^']+)'/);
-      if (yahooMatch) imageUrl = yahooMatch[1];
+      const bingHtml = await bingRes.text();
+      const bingMatch = bingHtml.match(/murl&quot;:&quot;(https:\/\/[^&]+)&quot;/i);
+      if (bingMatch) imageUrl = bingMatch[1];
     } catch (e) {
-      console.error("Yahoo Fetch failed:", e);
+      console.error("Bing Fetch failed:", e);
     }
   }
 
