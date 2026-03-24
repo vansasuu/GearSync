@@ -20,27 +20,42 @@ export async function addGear(formData: FormData) {
   const name = formData.get("name") as string;
   const category = formData.get("category") as string;
 
-  // Auto fetch image via DuckDuckGo (free, no API key needed)
+  // Auto fetch image via multi-stage scraper (DuckDuckGo -> Yahoo fallback)
   let imageUrl = null;
+  const query = encodeURIComponent(`${name} ${category} product`);
+
   try {
-    const query = encodeURIComponent(`${name} ${category} product`);
-    // Step 1: get vqd token from DDG
     const initRes = await fetch(`https://duckduckgo.com/?q=${query}&iax=images&ia=images`, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36" }
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36" }
     });
     const initHtml = await initRes.text();
     const vqdMatch = initHtml.match(/vqd=([\d-]+)/);
+    
     if (vqdMatch) {
       const vqd = vqdMatch[1];
       const imgRes = await fetch(
         `https://duckduckgo.com/i.js?q=${query}&vqd=${vqd}&f=,,,,,&p=1`,
-        { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36", "Referer": "https://duckduckgo.com/" } }
+        { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36", "Referer": "https://duckduckgo.com/" } }
       );
       const imgData = await imgRes.json();
       imageUrl = imgData.results?.[0]?.image ?? null;
     }
   } catch (e) {
-    console.error("Image fetch failed:", e);
+    console.error("DDG Fetch failed:", e);
+  }
+
+  // Fallback to Yahoo Images (Vercel-friendly)
+  if (!imageUrl) {
+    try {
+      const yahooRes = await fetch(`https://images.search.yahoo.com/search/images?p=${query}`, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36" }
+      });
+      const yahooHtml = await yahooRes.text();
+      const yahooMatch = yahooHtml.match(/src='(https:\/\/tse\d\.mm\.bing\.net[^']+)'/);
+      if (yahooMatch) imageUrl = yahooMatch[1];
+    } catch (e) {
+      console.error("Yahoo Fetch failed:", e);
+    }
   }
 
   try {
