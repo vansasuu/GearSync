@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Pro from "@/models/Pro";
 import ProAvatar from "./ProAvatar";
+import ImportProButton from "./ImportProButton";
 
 async function getPros() {
   if (mongoose.connection.readyState === 0) {
@@ -57,14 +58,17 @@ export default async function ProsPage() {
                   <div className="font-black text-white text-sm truncate">{pro.name}</div>
                   {pro.team && <div className="text-[11px] text-zinc-600 truncate">{pro.team}</div>}
                 </div>
-                <a
-                  href={pro.profileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] font-bold text-zinc-600 hover:text-green-500 transition flex-shrink-0"
-                >
-                  ↗
-                </a>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <ImportProButton proId={pro._id} />
+                  <a
+                    href={pro.profileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-bold text-zinc-600 hover:text-green-500 transition"
+                  >
+                    ↗
+                  </a>
+                </div>
               </div>
 
               {/* GEAR ROWS */}

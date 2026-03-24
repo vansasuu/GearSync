@@ -7,7 +7,10 @@ const GearSchema = new Schema({
   name: { type: String, required: true },
   category: { type: String, required: true },
   isMain: { type: Boolean, default: false },
+  isWishlist: { type: Boolean, default: false },
   imageUrl: { type: String },
+  price: { type: String },
+  priceUrl: { type: String },
 }, { timestamps: true });
 
 const Gear = models.Gear || model('Gear', GearSchema);

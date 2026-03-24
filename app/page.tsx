@@ -1,7 +1,26 @@
 "use client";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { addGear, getGear, deleteGear, toggleMain, updateGearImage, getGearReviews } from "@/app/actions/gearActions";
+import { addGear, getGear, deleteGear, toggleMain, updateGearImage, getGearReviews, getGearPrice, getGearHistory } from "@/app/actions/gearActions";
 import { useEffect, useState } from "react";
+
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+const ACTION_LABELS: Record<string, { icon: string; color: string; label: string }> = {
+  added:            { icon: "+", color: "text-green-500",  label: "Added" },
+  wishlist_added:   { icon: "♡", color: "text-purple-400", label: "Wishlisted" },
+  wishlist_imported:{ icon: "📥", color: "text-purple-400", label: "Imported" },
+  removed:          { icon: "−", color: "text-red-400",    label: "Removed" },
+  set_main:         { icon: "★", color: "text-yellow-400", label: "Set Main" },
+};
 
 export default function Home() {
   const { data: session } = useSession();
@@ -20,10 +39,22 @@ export default function Home() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [filterCategory, setFilterCategory] = useState("All");
+  const [activeView, setActiveView] = useState<"setup" | "wishlist" | "history">("setup");
+  const [gearHistory, setGearHistory] = useState<any[]>([]);
+  const [checkingPriceId, setCheckingPriceId] = useState<string | null>(null);
+  const [isWishlistAdd, setIsWishlistAdd] = useState(false);
 
   const loadData = async () => {
-    const data = await getGear();
+    const [data, history] = await Promise.all([getGear(), getGearHistory()]);
     setMyGear(data);
+    setGearHistory(history);
+  };
+
+  const handleCheckPrice = async (id: string, name: string) => {
+    setCheckingPriceId(id);
+    await getGearPrice(id, name);
+    setCheckingPriceId(null);
+    loadData();
   };
 
   useEffect(() => {
@@ -54,9 +85,12 @@ export default function Home() {
     setTimeout(() => setLinked(false), 2000);
   };
 
-  const mainingCount = myGear.filter((g) => g.isMain).length;
-  const categories = ["All", ...Array.from(new Set(myGear.map(g => g.category)))];
-  const filteredGear = filterCategory === "All" ? myGear : myGear.filter(g => g.category === filterCategory);
+  const setupGear = myGear.filter(g => !g.isWishlist);
+  const wishlistGear = myGear.filter(g => g.isWishlist);
+  const activeGear = activeView === "wishlist" ? wishlistGear : setupGear;
+  const mainingCount = setupGear.filter((g) => g.isMain).length;
+  const categories = ["All", ...Array.from(new Set(activeGear.map(g => g.category)))];
+  const filteredGear = filterCategory === "All" ? activeGear : activeGear.filter(g => g.category === filterCategory);
 
   // ─── LANDING PAGE (NOT LOGGED IN) ───
   if (!session) {
@@ -207,7 +241,7 @@ export default function Home() {
             </div>
             <div className="w-full bg-[#111] rounded-xl px-5 py-4 flex justify-between items-center">
               <div className="text-center">
-                <div className="text-xl font-black text-green-500">{myGear.length}</div>
+                <div className="text-xl font-black text-green-500">{setupGear.length}</div>
                 <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Gear</div>
               </div>
               <div className="w-px h-10 bg-[#1a1a1a]"></div>
@@ -217,8 +251,8 @@ export default function Home() {
               </div>
               <div className="w-px h-10 bg-[#1a1a1a]"></div>
               <div className="text-center">
-                <div className="text-xl font-black text-green-500">{myGear.length - mainingCount}</div>
-                <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Backup</div>
+                <div className="text-xl font-black text-purple-400">{wishlistGear.length}</div>
+                <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Wishlist</div>
               </div>
             </div>
           </div>
@@ -227,7 +261,12 @@ export default function Home() {
           <div className="animate-fade-in-up stagger-1">
             <div className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-4">Add Gear</div>
             <form
-              action={async (formData) => { await addGear(formData); loadData(); }}
+              action={async (formData) => {
+                formData.set("isWishlist", isWishlistAdd ? "true" : "false");
+                await addGear(formData);
+                setIsWishlistAdd(false);
+                loadData();
+              }}
               className="flex flex-col gap-3"
             >
               <input
@@ -245,11 +284,24 @@ export default function Home() {
                 <option value="Audio">Audio</option>
                 <option value="Controller">Controller</option>
               </select>
+              <label className="flex items-center gap-2.5 cursor-pointer group">
+                <div
+                  onClick={() => setIsWishlistAdd(v => !v)}
+                  className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isWishlistAdd ? "bg-purple-500 border-purple-500" : "border-zinc-700 group-hover:border-zinc-500"}`}
+                >
+                  {isWishlistAdd && <span className="text-[10px] text-white font-black">✓</span>}
+                </div>
+                <span className="text-xs text-zinc-500 group-hover:text-zinc-300 transition">Add to Wishlist</span>
+              </label>
               <button
                 type="submit"
-                className="bg-green-600 text-black font-black py-3.5 rounded-xl hover:bg-green-500 hover:shadow-lg hover:shadow-green-500/20 transition-all uppercase text-xs tracking-widest"
+                className={`font-black py-3.5 rounded-xl transition-all uppercase text-xs tracking-widest ${
+                  isWishlistAdd
+                    ? "bg-purple-600 text-white hover:bg-purple-500 hover:shadow-lg hover:shadow-purple-500/20"
+                    : "bg-green-600 text-black hover:bg-green-500 hover:shadow-lg hover:shadow-green-500/20"
+                }`}
               >
-                Add to Collection
+                {isWishlistAdd ? "Add to Wishlist" : "Add to Collection"}
               </button>
             </form>
           </div>
@@ -364,12 +416,64 @@ export default function Home() {
 
         {/* ═══ MAIN CONTENT ═══ */}
         <section className="md:col-span-8 p-6">
-          <div className="flex items-center justify-between mb-6 animate-fade-in-up">
-            <div className="text-sm font-bold text-zinc-500 uppercase tracking-widest">My Setup ({myGear.length})</div>
+          {/* ═══ VIEW TABS ═══ */}
+          <div className="flex items-center gap-1 mb-6 bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-1 w-fit animate-fade-in-up">
+            {(["setup", "wishlist", "history"] as const).map((view) => (
+              <button
+                key={view}
+                onClick={() => { setActiveView(view); setFilterCategory("All"); }}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+                  activeView === view
+                    ? view === "wishlist"
+                      ? "bg-purple-600 text-white shadow"
+                      : view === "history"
+                      ? "bg-zinc-700 text-white shadow"
+                      : "bg-green-600 text-black shadow"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {view === "setup" ? `Setup (${setupGear.length})` : view === "wishlist" ? `Wishlist (${wishlistGear.length})` : "History"}
+              </button>
+            ))}
           </div>
 
-          {/* ═══ CATEGORY FILTER PILLS ═══ */}
-          {myGear.length > 0 && (
+          {/* ═══ HISTORY VIEW ═══ */}
+          {activeView === "history" && (
+            <div className="animate-fade-in-up">
+              {gearHistory.length === 0 ? (
+                <div className="border-2 border-dashed border-[#1a1a1a] rounded-2xl py-24 text-center text-zinc-600 text-sm font-medium">
+                  No activity yet. Start adding gear to see your history.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-0">
+                  {gearHistory.map((entry: any, i: number) => {
+                    const meta = ACTION_LABELS[entry.action] ?? { icon: "·", color: "text-zinc-500", label: entry.action };
+                    return (
+                      <div key={entry._id} className={`flex items-start gap-4 py-4 ${i < gearHistory.length - 1 ? "border-b border-[#111]" : ""}`}>
+                        <div className={`text-base font-black w-6 text-center flex-shrink-0 mt-0.5 ${meta.color}`}>{meta.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-bold text-white truncate">{entry.gearName}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${meta.color}`}>{meta.label}</span>
+                            {entry.category !== "Import" && (
+                              <span className="text-[10px] text-zinc-600 font-bold">· {entry.category}</span>
+                            )}
+                            {entry.detail && (
+                              <span className="text-[10px] text-zinc-600">· {entry.detail}</span>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-zinc-700 font-bold flex-shrink-0 mt-1">{timeAgo(entry.createdAt)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ CATEGORY FILTER PILLS (setup + wishlist views) ═══ */}
+          {activeView !== "history" && activeGear.length > 0 && (
             <div className="flex gap-2 mb-6 flex-wrap animate-fade-in-up stagger-1">
               {categories.map((cat) => (
                 <button
@@ -377,7 +481,9 @@ export default function Home() {
                   onClick={() => setFilterCategory(cat)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
                     filterCategory === cat
-                      ? "bg-green-500 text-black shadow-lg shadow-green-500/20"
+                      ? activeView === "wishlist"
+                        ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20"
+                        : "bg-green-500 text-black shadow-lg shadow-green-500/20"
                       : "bg-[#111] text-zinc-500 border border-[#1a1a1a] hover:border-zinc-600 hover:text-zinc-300"
                   }`}
                 >
@@ -388,12 +494,15 @@ export default function Home() {
           )}
 
           {/* ═══ GEAR CARDS ═══ */}
+          {activeView !== "history" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredGear.map((item, i) => (
               <div
                 key={item._id}
                 className={`gear-card border rounded-2xl overflow-hidden group relative animate-fade-in-up stagger-${(i % 6) + 1} ${
-                  item.isMain
+                  item.isWishlist
+                    ? "bg-[#0a0a0a] border-purple-900/50"
+                    : item.isMain
                     ? "bg-[#0a0a0a] border-green-800/50"
                     : "bg-[#0a0a0a] border-[#1a1a1a]"
                 }`}
@@ -438,7 +547,9 @@ export default function Home() {
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-3">
                     <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-tighter ${
-                      item.isMain
+                      item.isWishlist
+                        ? "bg-purple-950 text-purple-400 border border-purple-900"
+                        : item.isMain
                         ? "bg-green-950 text-green-500 border border-green-900"
                         : "bg-[#111] text-zinc-500"
                     }`}>
@@ -446,10 +557,19 @@ export default function Home() {
                     </span>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5">
-                        <div className={`w-2 h-2 rounded-full ${item.isMain ? "bg-green-500 animate-pulse" : "bg-zinc-700"}`}></div>
-                        <span className={`text-xs font-bold uppercase tracking-widest ${item.isMain ? "text-green-500" : "text-zinc-600"}`}>
-                          {item.isMain ? "Maining" : "Backup"}
-                        </span>
+                        {item.isWishlist ? (
+                          <>
+                            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                            <span className="text-xs font-bold uppercase tracking-widest text-purple-400">Wishlist</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className={`w-2 h-2 rounded-full ${item.isMain ? "bg-green-500 animate-pulse" : "bg-zinc-700"}`}></div>
+                            <span className={`text-xs font-bold uppercase tracking-widest ${item.isMain ? "text-green-500" : "text-zinc-600"}`}>
+                              {item.isMain ? "Maining" : "Backup"}
+                            </span>
+                          </>
+                        )}
                       </div>
                       <button
                         onClick={() => { deleteGear(item._id); loadData(); }}
@@ -460,17 +580,41 @@ export default function Home() {
 
                   <h3 className="text-base font-black text-white mb-1 leading-tight">{item.name}</h3>
 
+                  {/* Price */}
+                  <div className="mt-1 h-5">
+                    {item.price ? (
+                      <a
+                        href={item.priceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-black text-green-400 hover:text-green-300 transition"
+                      >
+                        {item.price} →
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => handleCheckPrice(item._id, item.name)}
+                        disabled={checkingPriceId === item._id}
+                        className="text-xs font-bold text-zinc-700 hover:text-zinc-400 transition disabled:opacity-50"
+                      >
+                        {checkingPriceId === item._id ? "Checking..." : "Check Price"}
+                      </button>
+                    )}
+                  </div>
+
                   <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={async () => { await toggleMain(item._id, item.category); loadData(); }}
-                      className={`text-xs font-black px-4 py-2 rounded-xl border transition-all ${
-                        item.isMain
-                          ? "border-green-800 text-green-500 bg-green-950/50"
-                          : "border-zinc-800 text-zinc-500 hover:border-green-700 hover:text-green-500"
-                      }`}
-                    >
-                      {item.isMain ? "★ Main" : "Set Main"}
-                    </button>
+                    {!item.isWishlist && (
+                      <button
+                        onClick={async () => { await toggleMain(item._id, item.category); loadData(); }}
+                        className={`text-xs font-black px-4 py-2 rounded-xl border transition-all ${
+                          item.isMain
+                            ? "border-green-800 text-green-500 bg-green-950/50"
+                            : "border-zinc-800 text-zinc-500 hover:border-green-700 hover:text-green-500"
+                        }`}
+                      >
+                        {item.isMain ? "★ Main" : "Set Main"}
+                      </button>
+                    )}
                     <button
                       onClick={async () => {
                         if (reviewGearId === item._id) { setReviewGearId(null); return; }
@@ -513,12 +657,15 @@ export default function Home() {
               </div>
             ))}
 
-            {myGear.length === 0 && (
+            {filteredGear.length === 0 && (
               <div className="col-span-full border-2 border-dashed border-[#1a1a1a] rounded-2xl py-24 text-center text-zinc-600 text-sm font-medium animate-fade-in-up">
-                No hardware detected. Add your first piece of gear.
+                {activeView === "wishlist"
+                  ? "No wishlist items yet. Import a pro's setup or add gear with 'Add to Wishlist' checked."
+                  : "No hardware detected. Add your first piece of gear."}
               </div>
             )}
           </div>
+          )}
         </section>
       </div>
     </main>
