@@ -146,3 +146,28 @@ export async function updateGearImage(id: string, imageUrl: string) {
     return { success: false };
   }
 }
+
+// 7. GET GEAR REVIEWS (from Serper.dev)
+export async function getGearReviews(productName: string) {
+  if (!process.env.SERPER_API_KEY) return [];
+
+  // Search for reviews
+  const query = `${productName} review`;
+
+  try {
+    const res = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: {
+        "X-API-KEY": process.env.SERPER_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ q: query, num: 3 })
+    });
+    
+    const data = await res.json();
+    return data.organic || [];
+  } catch (e) {
+    console.error("REVIEW FETCH ERROR:", e);
+    return [];
+  }
+}

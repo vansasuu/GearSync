@@ -1,6 +1,6 @@
 "use client";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { addGear, getGear, deleteGear, toggleMain, updateGearImage } from "@/app/actions/gearActions";
+import { addGear, getGear, deleteGear, toggleMain, updateGearImage, getGearReviews } from "@/app/actions/gearActions";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -16,6 +16,9 @@ export default function Home() {
   const [editImageUrl, setEditImageUrl] = useState("");
   const [steamStats, setSteamStats] = useState<any>(null);
   const [editingAccounts, setEditingAccounts] = useState(false);
+  const [reviewGearId, setReviewGearId] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
 
   const loadData = async () => {
     const data = await getGear();
@@ -69,6 +72,7 @@ export default function Home() {
         <nav className="border-b border-[#1a1a1a] px-8 h-14 flex items-center justify-between bg-[#050505]">
           <span className="text-lg font-black tracking-tighter text-green-500">GEARSYNC</span>
           <div className="flex items-center gap-6">
+            <a href="/explore" className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest hover:text-white transition">Explore Gear</a>
             <a href="/pros" className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest hover:text-white transition">CS2 Pros</a>
             <button
               onClick={() => signIn("discord")}
@@ -154,6 +158,7 @@ export default function Home() {
       <nav className="w-full h-14 border-b border-[#1a1a1a] flex items-center justify-between px-6 bg-[#050505] sticky top-0 z-50">
         <div className="flex items-center gap-6">
           <h1 className="text-lg font-black tracking-tighter text-green-500">GEARSYNC</h1>
+          <a href="/explore" className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest hover:text-white transition">Explore Gear</a>
           <a href="/pros" className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest hover:text-white transition">CS2 Pros</a>
         </div>
         <div className="flex items-center gap-4">
@@ -454,7 +459,7 @@ export default function Home() {
 
                   <h3 className="text-sm font-black text-white mb-1 leading-tight">{item.name}</h3>
 
-                  <div className="mt-4">
+                  <div className="mt-4 flex gap-2">
                     <button
                       onClick={async () => { await toggleMain(item._id, item.category); loadData(); }}
                       className={`text-[10px] font-black px-3 py-1.5 rounded-lg border transition uppercase tracking-wider ${
@@ -465,8 +470,48 @@ export default function Home() {
                     >
                       {item.isMain ? "★ Main" : "Set Main"}
                     </button>
+                    <button
+                      onClick={async () => {
+                        if (reviewGearId === item._id) { setReviewGearId(null); return; }
+                        setReviewGearId(item._id);
+                        setLoadingReviews(true);
+                        const res = await getGearReviews(item.name);
+                        setReviews(res);
+                        setLoadingReviews(false);
+                      }}
+                      className="text-[10px] font-black px-3 py-1.5 rounded-lg border border-zinc-800 text-zinc-600 hover:border-zinc-500 hover:text-white transition uppercase tracking-wider"
+                    >
+                      Reviews
+                    </button>
                   </div>
                 </div>
+
+                {/* REVIEWS DRAWER */}
+                {reviewGearId === item._id && (
+                  <div className="px-5 pb-5 pt-0">
+                    <div className="border-t border-[#1a1a1a] pt-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                        <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Trusted Reviews</span>
+                      </div>
+                      
+                      {loadingReviews ? (
+                        <div className="text-[11px] text-zinc-500 animate-pulse font-medium">Searching the web...</div>
+                      ) : reviews?.length > 0 ? (
+                        <div className="flex flex-col gap-4">
+                          {reviews.map((r: any, i: number) => (
+                            <a key={i} href={r.link} target="_blank" rel="noopener noreferrer" className="block group">
+                              <div className="text-xs font-bold text-white group-hover:text-blue-400 transition mb-1 line-clamp-1">{r.title}</div>
+                              <div className="text-[10px] text-zinc-500 line-clamp-2 leading-relaxed">{r.snippet}</div>
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-zinc-500">No reviews found for this product.</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
 

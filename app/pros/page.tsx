@@ -18,7 +18,10 @@ export default async function ProsPage() {
     <main className="min-h-screen bg-[#050505] text-white font-sans">
       {/* NAV */}
       <nav className="w-full h-14 border-b border-[#1a1a1a] flex items-center justify-between px-8 bg-[#050505] sticky top-0 z-50">
-        <a href="/" className="text-lg font-black tracking-tighter text-green-500">GEARSYNC</a>
+        <div className="flex items-center gap-6">
+          <a href="/" className="text-lg font-black tracking-tighter text-green-500">GEARSYNC</a>
+          <a href="/explore" className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest hover:text-white transition">Explore Gear</a>
+        </div>
         <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest">CS2 Pro Settings</span>
       </nav>
 
