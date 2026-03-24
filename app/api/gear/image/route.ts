@@ -7,51 +7,27 @@ export async function GET(req: NextRequest) {
   if (!query) return NextResponse.json({ error: "query required" }, { status: 400 });
 
   try {
-    const encoded = encodeURIComponent(`${query} product`);
-
     let imageUrl = null;
 
     try {
-      // Step 1: get DuckDuckGo vqd token
-      const initRes = await fetch(`https://duckduckgo.com/?q=${encoded}&iax=images&ia=images`, {
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36" },
-      });
-      const initHtml = await initRes.text();
-      const vqdMatch = initHtml.match(/vqd=([\d-]+)/);
-
-      if (vqdMatch) {
-        const vqd = vqdMatch[1];
-        // Step 2: fetch image results
-        const imgRes = await fetch(
-          `https://duckduckgo.com/i.js?q=${encoded}&vqd=${vqd}&f=,,,,,&p=1`,
-          {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36",
-              "Referer": "https://duckduckgo.com/",
-            },
-          }
-        );
-        const imgData = await imgRes.json();
-        imageUrl = imgData.results?.[0]?.image ?? null;
+      if (process.env.SERPER_API_KEY) {
+        const res = await fetch("https://google.serper.dev/images", {
+          method: "POST",
+          headers: {
+            "X-API-KEY": process.env.SERPER_API_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ q: `${query} product` })
+        });
+        const data = await res.json();
+        if (data.images && data.images.length > 0) {
+          imageUrl = data.images[0].imageUrl;
+        }
+      } else {
+        console.warn("Missing SERPER_API_KEY in environment variables.");
       }
     } catch (e) {
-      console.error("DuckDuckGo failed:", e);
-    }
-
-    // FALLBACK: Bing Images (Highly tolerant of Vercel/AWS IPs)
-    if (!imageUrl) {
-      try {
-        const bingRes = await fetch(`https://www.bing.com/images/search?q=${encoded}`, {
-          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36" }
-        });
-        const bingHtml = await bingRes.text();
-        const bingMatch = bingHtml.match(/murl&quot;:&quot;(https:\/\/[^&]+)&quot;/i);
-        if (bingMatch) {
-          imageUrl = bingMatch[1];
-        }
-      } catch (e) {
-        console.error("Bing Image Search failed:", e);
-      }
+      console.error("Serper API Fetch failed:", e);
     }
 
     return NextResponse.json({ imageUrl });
