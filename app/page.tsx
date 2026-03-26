@@ -2,6 +2,7 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import { addGear, getGear, deleteGear, toggleMain, updateGearImage, getGearReviews, getGearPrice, getGearHistory } from "@/app/actions/gearActions";
 import { useEffect, useState } from "react";
+import HeroSlideshow from "@/app/components/HeroSlideshow";
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -154,28 +155,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ═══ GEAR PREVIEW CARDS ═══ */}
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 pb-20">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {[
-              { category: "Mouse", name: "Razer DeathAdder V3 Pro", emoji: "🖱️" },
-              { category: "Keyboard", name: "Wooting 60HE", emoji: "⌨️" },
-              { category: "Headset", name: "HyperX Cloud Alpha", emoji: "🎧" },
-            ].map((item, i) => (
-              <div
-                key={item.category}
-                className={`gear-card gradient-border bg-[#0a0a0a] rounded-2xl p-6 animate-fade-in-up stagger-${i + 1}`}
-              >
-                <div className="text-3xl mb-4">{item.emoji}</div>
-                <div className="text-xs font-bold text-green-500 uppercase tracking-widest mb-2">{item.category}</div>
-                <div className="text-base font-bold text-white mb-4">{item.name}</div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                  <span className="text-xs text-zinc-500 font-semibold uppercase tracking-widest">Maining</span>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* ═══ HERO SLIDESHOW ═══ */}
+        <div className="max-w-5xl mx-auto px-6 sm:px-10 pb-20 animate-fade-in-up stagger-2">
+          <HeroSlideshow />
         </div>
 
         {/* ═══ BOT COMMANDS ═══ */}
