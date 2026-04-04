@@ -1,7 +1,9 @@
+import connectToDatabase from "@/lib/mongoose";
 import mongoose from "mongoose";
 import Gear from "@/models/Gear";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Image from "next/image";
 
 export async function generateMetadata(
   { params }: { params: Promise<{ username: string }> }
@@ -31,9 +33,7 @@ export async function generateMetadata(
 }
 
 async function getUserGear(username: string) {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
-  }
+  await connectToDatabase();
   const gear = await Gear.find({
     discordUsername: { $regex: new RegExp(`^${username}$`, "i") },
     isMain: true,
@@ -44,9 +44,7 @@ async function getUserGear(username: string) {
 }
 
 async function getUserInfo(username: string) {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
-  }
+  await connectToDatabase();
   const anyGear = await Gear.findOne({
     discordUsername: { $regex: new RegExp(`^${username}$`, "i") },
   });
@@ -70,9 +68,7 @@ async function getUserStats(username: string) {
 }
 
 async function checkIfPro(username: string) {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
-  }
+  await connectToDatabase();
   const ProModel =
     mongoose.models.Pro ||
     mongoose.model("Pro", new mongoose.Schema({ name: String }));
@@ -149,9 +145,11 @@ export default async function UserProfilePage({
               <div className="flex flex-col sm:flex-row sm:items-end gap-5">
                 {/* AVATAR */}
                 {avatarUrl ? (
-                  <img
+                  <Image
                     src={avatarUrl}
                     alt={username}
+                    width={144}
+                    height={144}
                     className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl border-4 border-[#0a0a0a] bg-zinc-900 object-cover shadow-2xl"
                   />
                 ) : (
@@ -301,7 +299,7 @@ export default async function UserProfilePage({
                         
                         {item.imageUrl && (
                           <div className="mt-4 w-full h-24 rounded-xl bg-black/40 overflow-hidden border border-white/5 relative group-hover:border-white/10 transition-colors">
-                            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-2 mix-blend-screen opacity-80 group-hover:opacity-100 transition-opacity" />
+                            <Image src={item.imageUrl} alt={item.name} width={400} height={400} className="w-full h-full object-contain p-2 mix-blend-screen opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
                           </div>
                         )}
                       </div>

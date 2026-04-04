@@ -1,11 +1,10 @@
+import connectToDatabase from "@/lib/mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import Gear from "@/models/Gear";
 
 async function connectDB() {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
-  }
+  await connectToDatabase();
 }
 
 export async function GET(req: NextRequest) {

@@ -1,3 +1,4 @@
+import connectToDatabase from "@/lib/mongoose";
 import { ImageResponse } from "next/og";
 import mongoose from "mongoose";
 import Gear from "@/models/Gear";
@@ -5,9 +6,7 @@ import Gear from "@/models/Gear";
 export const runtime = "nodejs";
 
 async function connectDB() {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
-  }
+  await connectToDatabase();
 }
 
 export async function GET(

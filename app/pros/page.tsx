@@ -1,12 +1,11 @@
+import connectToDatabase from "@/lib/mongoose";
 import mongoose from "mongoose";
 import Pro from "@/models/Pro";
 import ProAvatar from "./ProAvatar";
 import ImportProButton from "./ImportProButton";
 
 async function getPros() {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
-  }
+  await connectToDatabase();
   const pros = await Pro.find({ game: "CS2" }).sort({ name: 1 });
   return JSON.parse(JSON.stringify(pros));
 }

@@ -13,5 +13,10 @@ const GearSchema = new Schema({
   priceUrl: { type: String },
 }, { timestamps: true });
 
+GearSchema.index({ discordUsername: 1 });
+GearSchema.index({ userId: 1 });
+GearSchema.index({ name: 1 });
+GearSchema.index({ category: 1 });
+
 const Gear = models.Gear || model('Gear', GearSchema);
 export default Gear;

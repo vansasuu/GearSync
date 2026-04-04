@@ -1,3 +1,4 @@
+import connectToDatabase from "@/lib/mongoose";
 "use server";
 import Gear from "@/models/Gear";
 import GearHistory from "@/models/GearHistory";
@@ -6,9 +7,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import mongoose from "mongoose";
 
 async function connectDB() {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
-  }
+  await connectToDatabase();
 }
 
 // 1. ADD GEAR

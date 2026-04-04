@@ -1,3 +1,4 @@
+import connectToDatabase from "@/lib/mongoose";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import Gear from "@/models/Gear";
@@ -6,9 +7,7 @@ export const revalidate = 120;
 
 export async function GET() {
   try {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGODB_URI!);
-    }
+    await connectToDatabase();
 
     const trending = await Gear.aggregate([
       {

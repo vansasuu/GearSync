@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 
 function getInitials(name: string) {
   const words = name.trim().split(/\s+/);
@@ -19,11 +20,14 @@ export default function ProAvatar({ name, imageUrl }: { name: string; imageUrl?:
   }
 
   return (
-    <img
+    <Image
       src={imageUrl}
       alt={name}
+      width={100}
+      height={100}
       className="w-full h-full object-cover object-top"
       onError={() => setImgError(true)}
+      unoptimized
     />
   );
 }

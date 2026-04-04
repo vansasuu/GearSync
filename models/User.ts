@@ -8,5 +8,7 @@ const UserSchema = new Schema({
   valorantId: { type: String }, // e.g. "sassuan#1234"
 }, { timestamps: true });
 
+UserSchema.index({ discordUsername: 1 });
+
 const User = models.User || model('User', UserSchema);
 export default User;

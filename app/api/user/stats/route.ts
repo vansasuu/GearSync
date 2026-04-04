@@ -1,11 +1,10 @@
+import connectToDatabase from "@/lib/mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import User from "@/models/User";
 
 async function connectDB() {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
-  }
+  await connectToDatabase();
 }
 
 const GAME_IDS: Record<string, number> = {

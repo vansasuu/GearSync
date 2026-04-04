@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 interface SlideItem {
   name: string;
@@ -159,14 +160,17 @@ function SlideshowInner({ slides }: { slides: SlideItem[] }) {
           key={`img-${current}`}
         >
           {slide.imageUrl && !slide.imageUrl.startsWith("ERROR") ? (
-            <img
+            <Image
               src={slide.imageUrl}
               alt={slide.name}
+              width={260}
+              height={260}
               className="max-w-full max-h-full object-contain"
               style={{
                 animation: "gsFloat 7s ease-in-out infinite, gsImgIn 0.6s cubic-bezier(0.16,1,0.3,1) both",
                 filter: `drop-shadow(0 0 50px ${col.accent}55)`,
               }}
+              unoptimized
             />
           ) : (
             <div

@@ -1,3 +1,4 @@
+import connectToDatabase from "@/lib/mongoose";
 import mongoose from "mongoose";
 import Gear from "@/models/Gear";
 import ExploreClient from "./ExploreClient";
@@ -5,9 +6,7 @@ import ExploreClient from "./ExploreClient";
 export const revalidate = 60; // Revalidate every minute
 
 async function getTrendingGear() {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
-  }
+  await connectToDatabase();
 
   try {
     const trending = await Gear.aggregate([

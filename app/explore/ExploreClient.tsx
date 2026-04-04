@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { addGear, getGearReviews } from "@/app/actions/gearActions";
 
@@ -42,7 +43,7 @@ export default function ExploreClient({ trending }: { trending: any[] }) {
             {/* IMAGE */}
             <div className="w-full h-40 bg-[#111] flex items-center justify-center p-4">
               {item.imageUrl && !item.imageUrl.startsWith("ERROR") ? (
-                <img src={item.imageUrl} alt={item.name} className="max-w-full max-h-full object-contain" />
+                <Image src={item.imageUrl} alt={item.name} width={400} height={400} className="w-full h-full object-contain" unoptimized />
               ) : (
                 <span className="text-zinc-800 text-xs font-bold uppercase tracking-widest">{item.category}</span>
               )}
