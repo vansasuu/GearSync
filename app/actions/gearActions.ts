@@ -1,5 +1,5 @@
-import connectToDatabase from "@/lib/mongoose";
 "use server";
+import connectToDatabase from "@/lib/mongoose";
 import Gear from "@/models/Gear";
 import GearHistory from "@/models/GearHistory";
 import { getServerSession } from "next-auth";
